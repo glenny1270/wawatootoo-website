@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ja" data-lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wawatootoo art studio | こどもと中高生の絵画教室</title>
+<meta name="description" content="東京・亀戸の小さなアトリエから。こども絵画と中高生デッサンの教室、Wawatootoo art studio。">
+<!-- 開発中のためインデックス禁止：正式公開時にこの1行を削除してください -->
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;800&family=Zen+Kaku+Gothic+New:wght@300;400;500;700&family=Noto+Serif+SC:wght@400;600;900&family=Noto+Sans+SC:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="home">
+
+<div id="progressBar"></div>
+<div id="site-header"></div>
+
+<main>
+  <!-- ========== 学生作品カルーセル（ホーム） ========== -->
+  <section class="stage">
+    <div class="stage-bg"></div>
+    <div class="stage-ghost" aria-hidden="true">gallery</div>
+
+    <p class="stage-kicker i18n-fade" data-i18n="home_kicker">生徒作品ギャラリー</p>
+
+    <div class="carousel">
+      <p class="carousel-counter" id="carouselCounter">01 / 06</p>
+      <div class="carousel-frame">
+        <div class="carousel-slides" id="carouselSlides"></div>
+        <div class="carousel-caption" id="carouselCaption">
+          <span class="t w-title"></span>
+          <span class="a w-age"></span>
+        </div>
+      </div>
+      <button class="car-btn car-prev" id="carPrev" aria-label="previous">←</button>
+      <button class="car-btn car-next" id="carNext" aria-label="next">→</button>
+      <div class="carousel-dots" id="carouselDots"></div>
+    </div>
+
+    <div class="stage-cta">
+      <a class="btn btn-solid" href="contact.html"><span class="i18n-fade" data-i18n="hero_cta1">体験レッスンに申し込む</span><span class="arrow">→</span></a>
+      <a class="btn btn-ghost" href="courses.html"><span class="i18n-fade" data-i18n="hero_cta2">コースを見る</span></a>
+    </div>
+    <p class="stage-note i18n-fade" data-i18n="home_note">作品は自動で切り替わります（矢印キーでも操作できます）</p>
+  </section>
+
+  <!-- ========== マーキー ========== -->
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-track" id="marqueeTrack"></div>
+  </div>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/main.js"></script>
+</body>
+</html>
