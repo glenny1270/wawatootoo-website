@@ -202,6 +202,17 @@ function refreshMediaCaptions(){
     if(tEl) tEl.textContent = t;
     if(aEl) aEl.textContent = a;
   });
+  /* アクティビティ動画のキャプション */
+  if(typeof ACTIVITY_VIDEOS !== "undefined"){
+    document.querySelectorAll("[data-act-i]").forEach(el=>{
+      const item = ACTIVITY_VIDEOS[Number(el.dataset.actI)];
+      if(!item) return;
+      const cap = item[currentLang] || item.ja;
+      const tEl = el.querySelector(".v-title"), mEl = el.querySelector(".v-meta");
+      if(tEl) tEl.textContent = cap[0];
+      if(mEl) mEl.textContent = cap[1] || "";
+    });
+  }
   const capHost = document.getElementById("carouselCaption");
   if(capHost && mediaItems.length && capHost.dataset.mediaI !== undefined){
     const item = mediaItems[Number(capHost.dataset.mediaI)];
@@ -307,6 +318,26 @@ function initWorksGrid(){
   observeReveals(grid);
 }
 
+/* ---------- works page: activity movies grid ----------
+   assets/js/i18n.js の ACTIVITY_VIDEOS の順に表示します。 */
+function initActivityGrid(){
+  const grid = document.getElementById("videoGrid");
+  if(!grid || typeof ACTIVITY_VIDEOS === "undefined") return;
+  grid.innerHTML = ACTIVITY_VIDEOS.map((v,i)=>`
+    <figure class="vid reveal" data-act-i="${i}">
+      <video src="${v.file}" controls preload="metadata" playsinline controlslist="nodownload"></video>
+      <figcaption><span class="v-title"></span><span class="v-meta"></span></figcaption>
+    </figure>`).join("");
+  refreshMediaCaptions();
+  /* 再生は同時に1本だけ */
+  grid.querySelectorAll("video").forEach(v=>{
+    v.addEventListener("play", ()=>{
+      grid.querySelectorAll("video").forEach(o=>{ if(o!==v) o.pause(); });
+    });
+  });
+  observeReveals(grid.parentElement);
+}
+
 /* ---------- scroll effects ---------- */
 const io = new IntersectionObserver(entries=>{
   entries.forEach(e=>{
@@ -372,3 +403,6 @@ Promise.all([discoverWorks(), discoverVideos()]).then(([works, videos])=>{
   initCarousel();
   initWorksGrid();
 });
+
+/* 作品ページのアクティビティ動画（自動検出に依存しないので即時実行） */
+initActivityGrid();
