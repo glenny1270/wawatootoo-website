@@ -14,7 +14,7 @@ const PAGES = [
   ["contact.html",  "nav_contact"]
 ];
 
-const HTML_KEYS = new Set(["about_stamp","addr","t2_bio"]);
+const HTML_KEYS = new Set(["about_stamp","addr","t2_bio","t3_bio","t4_bio"]);
 let currentLang = "ja";
 let discoveredWorks = [];   /* [{n, url}]  images in assets/works */
 let discoveredVideos = [];  /* [{n, url}]  videos in assets/media */
