@@ -294,6 +294,36 @@ h3.course-name{font-family:var(--serif);font-weight:600;font-size:clamp(22px,2.6
 .course-icon{position:absolute;right:26px;top:26px;width:54px;height:54px;opacity:.85;}
 .course-grid.single{grid-template-columns:1fr;max-width:760px;}
 
+/* ---------- merged courses page ---------- */
+.group-title{
+  font-family:var(--serif);font-weight:600;color:var(--ink);
+  font-size:clamp(24px,3.2vw,34px);letter-spacing:.1em;line-height:1.5;
+  margin:clamp(50px,7vw,80px) 0 clamp(24px,3vw,36px);
+  display:flex;align-items:center;gap:18px;
+}
+.group-title:first-child{margin-top:0;}
+.group-title::after{content:"";height:1px;flex:1;background:var(--line);}
+.materials-box{
+  margin-top:clamp(40px,5vw,60px);
+  border:1px solid var(--line);background:#fff;
+  padding:clamp(26px,3vw,44px);
+  border-left:3px solid var(--accent);
+}
+.materials-box h3{font-family:var(--serif);font-size:19px;font-weight:600;letter-spacing:.12em;margin-bottom:14px;}
+.materials-box p{color:var(--ink-soft);font-weight:300;font-size:14.5px;}
+.materials-note{margin-top:10px;font-size:12.5px;color:var(--muted);}
+.sched-wrap{max-width:760px;}
+.sched-group{
+  font-family:var(--serif);font-size:17px;font-weight:600;letter-spacing:.12em;
+  color:var(--accent-deep);margin:26px 0 6px;
+}
+.sched-group:first-child{margin-top:0;}
+.sched-sub{
+  font-size:12px;letter-spacing:.2em;color:var(--muted);margin:14px 0 2px;
+}
+a.trial-banner{cursor:pointer;transition:transform .3s ease, box-shadow .3s ease;}
+a.trial-banner:hover{transform:translateY(-3px);box-shadow:0 20px 40px -18px rgba(108,74,208,.5);}
+
 /* ---------- activity movies (works page) ---------- */
 .movies-head{margin:clamp(70px,9vw,110px) 0 clamp(36px,4vw,54px);}
 .movies-head .sec-num{
@@ -405,6 +435,7 @@ h3.course-name{font-family:var(--serif);font-weight:600;font-size:clamp(22px,2.6
 .form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-bottom-color:var(--accent);}
 .form-sent{display:none;margin-top:18px;color:var(--accent);font-size:13.5px;letter-spacing:.08em;}
 .form-sent.show{display:block;}
+.form-sent.err{color:#B3362B;}
 
 /* ---------- footer ---------- */
 footer.site-footer{
