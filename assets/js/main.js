@@ -11,11 +11,10 @@ const PAGES = [
   ["courses.html",  "nav_courses"],
   ["works.html",    "nav_works"],
   ["teachers.html", "nav_teachers"],
-  ["fees.html",     "nav_fees"],
   ["contact.html",  "nav_contact"]
 ];
 
-const HTML_KEYS = new Set(["about_stamp","addr"]);
+const HTML_KEYS = new Set(["about_stamp","addr","t2_bio"]);
 let currentLang = "ja";
 let discoveredWorks = [];   /* [{n, url}]  images in assets/works */
 let discoveredVideos = [];  /* [{n, url}]  videos in assets/media */
@@ -388,11 +387,45 @@ addEventListener("scroll", ()=>{
   }
 }, {passive:true});
 
+/* ---------- お問い合わせフォーム（FormSubmit 経由でメール送信） ---------- */
+const FORM_ENDPOINT = "https://formsubmit.co/ajax/wmyymw1994@gmail.com";
 const form = document.getElementById("contactForm");
 if(form){
-  form.addEventListener("submit", e=>{
+  form.addEventListener("submit", async e=>{
     e.preventDefault();
-    document.getElementById("formSent").classList.add("show");
+    const btn = form.querySelector("button[type=submit]");
+    const sent = document.getElementById("formSent");
+    const honey = document.getElementById("f-honey");
+    const dict = I18N[currentLang];
+    btn.disabled = true; btn.style.opacity = ".55";
+    sent.classList.remove("show","err");
+    try{
+      const res = await fetch(FORM_ENDPOINT, {
+        method: "POST",
+        headers: {"Content-Type":"application/json", "Accept":"application/json"},
+        body: JSON.stringify({
+          "お名前 / Name": document.getElementById("f-name").value,
+          "メール / Email": document.getElementById("f-email").value,
+          "ご希望のコース / Course": document.getElementById("f-course").value,
+          "メッセージ / Message": document.getElementById("f-msg").value,
+          "_subject": "【Wawatootoo】サイトからのお問い合わせ",
+          "_template": "table",
+          "_captcha": "false",
+          "_honey": honey ? honey.value : ""
+        })
+      });
+      if(!res.ok) throw new Error("send failed: " + res.status);
+      sent.setAttribute("data-i18n","f_sent");
+      sent.textContent = dict.f_sent;
+      sent.classList.add("show");
+      form.reset();
+    }catch(err){
+      sent.setAttribute("data-i18n","f_err");
+      sent.textContent = dict.f_err;
+      sent.classList.add("show","err");
+    }finally{
+      btn.disabled = false; btn.style.opacity = "";
+    }
   });
 }
 
