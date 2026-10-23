@@ -1,5 +1,5 @@
 /* ============================================================
-   WATO — shared script
+   Wawatootoo art studio — shared script
    ヘッダー/フッターの生成・言語切替・作品/動画の自動読み込み・
    ホームのメディアカルーセルをここで一括管理します。
    ============================================================ */
@@ -45,7 +45,7 @@ function buildHeader(){
   host.innerHTML = `
   <header class="site-header" id="header">
     <a class="brand" href="index.html">
-      <img class="brand-mark-img" src="${BASE}assets/img/wato-mark.png" alt="WATO">
+      <img class="brand-mark-img" src="${BASE}assets/img/wato-mark.png" alt="Wawatootoo art studio">
       <span>
         <span class="brand-name i18n-fade" data-i18n="brand"></span>
         <span class="brand-sub">art studio</span>
@@ -76,13 +76,12 @@ function buildFooter(){
   <footer class="site-footer">
     <div class="footer-inner">
       <div class="footer-left">
-        <img class="footer-logo" src="${BASE}assets/img/wato-logo.png" alt="WATO — wawatootoo art studio">
         <small>Art Studio · Kameido, Tokyo</small>
       </div>
       <p class="footer-tag i18n-fade" data-i18n="foot_note"></p>
     </div>
     <div class="copyright">
-      <span>© 2026 WATO. All rights reserved.</span>
+      <span>© 2026 Wawatootoo art studio. All rights reserved.</span>
       <span>Kameido, Koto City, Tokyo</span>
       <span class="ga-note i18n-fade" data-i18n="ga_note"></span>
     </div>
@@ -106,7 +105,7 @@ function applyLang(lang){
   const page = PAGES.find(p=>p[0]===cur);
   document.title = (cur === "index.html" || !page)
     ? dict.meta_title
-    : dict[page[1]] + " | WATO";
+    : dict[page[1]] + " | Wawatootoo art studio";
   const mq = document.getElementById("marqueeTrack");
   if(mq) buildMarquee(dict.marquee);
   document.querySelectorAll(".lang-switch button").forEach(b=>{
@@ -471,7 +470,7 @@ if(form){
           "メール / Email": document.getElementById("f-email").value,
           "ご希望のコース / Course": document.getElementById("f-course").value,
           "メッセージ / Message": document.getElementById("f-msg").value,
-          "_subject": "【WATO】サイトからのお問い合わせ",
+          "_subject": "【Wawatootoo art studio】サイトからのお問い合わせ",
           "_template": "table",
           "_captcha": "false",
           "_honey": honey ? honey.value : ""
