@@ -85,7 +85,9 @@ ja:{
   f_err:"送信に失敗しました。お手数ですが、時間をおいてもう一度お試しください。",
   foot_note:"描くことは、見ること。",
   ga_note:"本サイトはアクセス解析に Google Analytics を使用しています。",
-  works_generic:"作品", works_generic_meta:"生徒作品"
+  works_generic:"作品", works_generic_meta:"生徒作品",
+  works_kids_title:"こども美術の作品", works_sketch_title:"デッサン作品",
+  works_generic_kids:"こども美術", works_generic_sketch:"デッサン"
 },
 zh:{
   meta_title:"Wawatootoo art studio | 龟户的儿童美术·素描画室（东京江东区）",
@@ -168,7 +170,9 @@ zh:{
   f_err:"发送失败，请稍后再试一次。",
   foot_note:"画画，就是学会观看。",
   ga_note:"本网站使用 Google Analytics 进行访问统计。",
-  works_generic:"作品", works_generic_meta:"学生作品"
+  works_generic:"作品", works_generic_meta:"学生作品",
+  works_kids_title:"儿童美术作品", works_sketch_title:"素描作品",
+  works_generic_kids:"儿童美术", works_generic_sketch:"素描"
 },
 en:{
   meta_title:"Wawatootoo art studio | Kids' Art & Drawing School in Kameido, Tokyo",
@@ -251,7 +255,9 @@ en:{
   f_err:"Sending failed. Please try again in a moment.",
   foot_note:"To draw is to see.",
   ga_note:"This site uses Google Analytics for traffic measurement.",
-  works_generic:"Work", works_generic_meta:"Student Work"
+  works_generic:"Work", works_generic_meta:"Student Work",
+  works_kids_title:"Children's Art", works_sketch_title:"Drawings",
+  works_generic_kids:"Kids' Art", works_generic_sketch:"Drawing"
 }
 };
 

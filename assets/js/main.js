@@ -18,7 +18,8 @@ const HTML_KEYS = new Set(["about_stamp","addr","t2_bio","t3_bio","t4_bio","t5_b
 /* 言語別サブディレクトリ（/zh/ /en/）から資産を参照するためのベースパス */
 const BASE = (document.body && document.body.dataset.base) || "";
 let currentLang = "ja";
-let discoveredWorks = [];   /* [{n, url}]  images in assets/works */
+let worksGroups = {child:[], sketch:[]};  /* assets/works/<group>/ の画像 */
+let discoveredWorks = [];   /* [{group, n, url}] 全グループ結合（lightbox 用） */
 let discoveredVideos = [];  /* [{n, url}]  videos in assets/media */
 let mediaItems = [];        /* carousel slides: videos first, then images */
 
@@ -155,18 +156,40 @@ function probeUrl(url){
   });
 }
 
-async function discoverWorks(max=60){
+/* 作品はグループごとのサブフォルダに置く:
+   assets/works/child/1.jpg…（こども美術） / assets/works/sketch/01.jpg…（デッサン）
+   ファイル名は 1.jpg でも 01.jpg でも可。 */
+const WORK_GROUPS = ["child","sketch"];
+/* 首页カルーセルに出さない作品（"グループ/番号"） */
+const CAROUSEL_EXCLUDE = new Set(["sketch/1"]);
+
+async function discoverFolder(folder, max=60){
   const found = [];
   for(let n=1;n<=max;n++){
     let url = null;
-    for(const ext of WORK_EXTS){
-      const candidate = `${BASE}assets/works/${pad2(n)}.${ext}`;
-      if(await probeImage(candidate)){ url = candidate; break; }
+    const names = n < 10 ? [pad2(n), String(n)] : [String(n)];
+    outer: for(const name of names){
+      for(const ext of WORK_EXTS){
+        const candidate = folder
+          ? `${BASE}assets/works/${folder}/${name}.${ext}`
+          : `${BASE}assets/works/${name}.${ext}`;
+        if(await probeImage(candidate)){ url = candidate; break outer; }
+      }
     }
     if(!url) break;
-    found.push({n, url});
+    found.push({group: folder || "sketch", n, url});
   }
   return found;
+}
+
+async function discoverWorks(max=60){
+  const groups = {};
+  for(const g of WORK_GROUPS) groups[g] = await discoverFolder(g, max);
+  /* 旧構成（assets/works/01.jpg…）へのフォールバック */
+  if(!groups.child.length && !groups.sketch.length){
+    groups.sketch = await discoverFolder("", max);
+  }
+  return groups;
 }
 
 async function discoverVideos(max=10){
@@ -182,11 +205,14 @@ async function discoverVideos(max=10){
 }
 
 /* ---------- captions ---------- */
-function imageCaption(n){
-  const c = WORKS_CAPTIONS[n];
+function imageCaption(w){
+  /* w: {group, n} — WORKS_CAPTIONS のキーは "child/1" / "sketch/2" 形式 */
+  const key = `${w.group}/${w.n}`;
+  const c = WORKS_CAPTIONS[key] || WORKS_CAPTIONS[w.n];
   if(c && c[currentLang]) return c[currentLang];
   const d = I18N[currentLang];
-  return [`${d.works_generic} ${pad2(n)}`, d.works_generic_meta];
+  const generic = (w.group === "child" ? d.works_generic_kids : d.works_generic_sketch) || d.works_generic;
+  return [`${generic} ${pad2(w.n)}`, d.works_generic_meta];
 }
 function videoCaption(n){
   const c = VIDEO_CAPTIONS[n];
@@ -194,12 +220,16 @@ function videoCaption(n){
   return [`Video ${n}`, "Movie"];
 }
 function mediaCaption(item){
-  return item.type === "video" ? videoCaption(item.n) : imageCaption(item.n);
+  return item.type === "video" ? videoCaption(item.n) : imageCaption(item);
 }
 
 function refreshMediaCaptions(){
-  document.querySelectorAll("[data-work-n]").forEach(el=>{
-    const [t,a] = imageCaption(Number(el.dataset.workN));
+  document.querySelectorAll("[data-work-key]").forEach(el=>{
+    const parts = el.dataset.workKey.split("/");
+    const w = parts.length === 2
+      ? {group: parts[0], n: Number(parts[1])}
+      : {group: "sketch", n: Number(parts[0])};
+    const [t,a] = imageCaption(w);
     const tEl = el.querySelector(".w-title"), aEl = el.querySelector(".w-age");
     if(tEl) tEl.textContent = t;
     if(aEl) aEl.textContent = a;
@@ -239,7 +269,9 @@ function initCarousel(){
 
   mediaItems = [
     ...discoveredVideos.map(v=>({type:"video", n:v.n, url:v.url, webm:v.webm})),
-    ...discoveredWorks.map(w=>({type:"img", n:w.n, url:w.url}))
+    ...discoveredWorks
+      .filter(w=>!CAROUSEL_EXCLUDE.has(`${w.group}/${w.n}`))
+      .map(w=>({type:"img", group:w.group, n:w.n, url:w.url}))
   ];
   if(!mediaItems.length){
     slidesHost.innerHTML = "<p style='padding:40px;text-align:center'>No media found.</p>";
@@ -306,21 +338,44 @@ function initCarousel(){
   show(0); /* 先頭 = video_0（自動再生） */
 }
 
-/* ---------- works page grid (images only) ---------- */
-function initWorksGrid(){
-  const grid = document.getElementById("worksGrid");
-  if(!grid) return;
-  grid.innerHTML = discoveredWorks.map((w,i)=>`
-    <figure class="work reveal" data-work-n="${w.n}" data-idx="${i}">
-      <div class="art"><img src="${w.url}" alt="student work ${pad2(w.n)}" loading="lazy"></div>
+/* ---------- works page grids (こども美術 / デッサン) ---------- */
+function workFigure(w, idx){
+  return `
+    <figure class="work reveal" data-work-key="${w.group}/${w.n}" data-idx="${idx}">
+      <div class="art"><img src="${w.url}" alt="student work ${w.group} ${pad2(w.n)}" loading="lazy"></div>
       <figcaption><span class="w-title"></span><span class="age w-age"></span></figcaption>
-    </figure>`).join("");
+    </figure>`;
+}
+function initWorksGrid(){
+  const kidsGrid = document.getElementById("kidsGrid");
+  const sketchGrid = document.getElementById("sketchGrid");
+  const legacyGrid = document.getElementById("worksGrid");
+  if(!kidsGrid && !sketchGrid && !legacyGrid) return;
+  const hosts = [];
+  if(kidsGrid){
+    kidsGrid.innerHTML = worksGroups.child.map(w=>workFigure(w, discoveredWorks.indexOf(w))).join("");
+    const sec = document.getElementById("kidsSection");
+    if(sec && !worksGroups.child.length) sec.style.display = "none";
+    hosts.push(kidsGrid);
+  }
+  if(sketchGrid){
+    sketchGrid.innerHTML = worksGroups.sketch.map(w=>workFigure(w, discoveredWorks.indexOf(w))).join("");
+    const sec = document.getElementById("sketchSection");
+    if(sec && !worksGroups.sketch.length) sec.style.display = "none";
+    hosts.push(sketchGrid);
+  }
+  if(!kidsGrid && !sketchGrid && legacyGrid){
+    legacyGrid.innerHTML = discoveredWorks.map((w,i)=>workFigure(w,i)).join("");
+    hosts.push(legacyGrid);
+  }
   refreshMediaCaptions();
   bindTilt();
-  observeReveals(grid);
   buildLightbox();
-  grid.querySelectorAll(".work").forEach(w=>{
-    w.addEventListener("click", ()=>openLightbox(Number(w.dataset.idx)));
+  hosts.forEach(grid=>{
+    observeReveals(grid);
+    grid.querySelectorAll(".work").forEach(w=>{
+      w.addEventListener("click", ()=>openLightbox(Number(w.dataset.idx)));
+    });
   });
 }
 
@@ -336,7 +391,7 @@ function buildLightbox(){
     <button class="lb-btn lb-prev" aria-label="previous">←</button>
     <figure class="lb-stage">
       <img alt="">
-      <figcaption data-work-n=""><span class="w-title"></span><span class="age w-age"></span></figcaption>
+      <figcaption data-work-key=""><span class="w-title"></span><span class="age w-age"></span></figcaption>
     </figure>
     <button class="lb-btn lb-next" aria-label="next">→</button>`;
   document.body.appendChild(lb);
@@ -358,8 +413,8 @@ function showLightbox(i){
   const w = discoveredWorks[lbIndex];
   lb.querySelector("img").src = w.url;
   const cap = lb.querySelector("figcaption");
-  cap.dataset.workN = w.n;
-  const [t,a] = imageCaption(w.n);
+  cap.dataset.workKey = `${w.group}/${w.n}`;
+  const [t,a] = imageCaption(w);
   cap.querySelector(".w-title").textContent = t;
   cap.querySelector(".w-age").textContent = a;
 }
@@ -492,8 +547,9 @@ if(form){
 }
 
 /* media discovery → carousel / grid */
-Promise.all([discoverWorks(), discoverVideos()]).then(([works, videos])=>{
-  discoveredWorks = works;
+Promise.all([discoverWorks(), discoverVideos()]).then(([groups, videos])=>{
+  worksGroups = groups;
+  discoveredWorks = [...groups.child, ...groups.sketch];
   discoveredVideos = videos;
   initCarousel();
   initWorksGrid();
