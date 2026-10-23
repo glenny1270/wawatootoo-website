@@ -264,13 +264,7 @@ html[data-lang="en"] .pull-quote{font-family:var(--latin);font-style:italic;font
   transform:rotate(1.6deg);transition:transform .5s ease;
 }
 .about-art:hover .frame{transform:rotate(0deg);}
-.about-stamp{
-  position:absolute;left:-26px;bottom:-26px;width:96px;height:96px;border-radius:50%;
-  background:linear-gradient(140deg,#8B5CF6,var(--blue));color:#fff;display:flex;align-items:center;justify-content:center;
-  font-family:var(--serif);font-size:13px;letter-spacing:.14em;text-align:center;line-height:1.6;
-  transform:rotate(-8deg);animation:stampfloat 5s ease-in-out infinite alternate;
-}
-@keyframes stampfloat{to{transform:rotate(-2deg) translateY(-8px);}}
+.about-art .frame img{display:block;width:100%;height:auto;}
 
 /* ---------- courses ---------- */
 .course-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,3vw,44px);}
@@ -526,7 +520,6 @@ html[data-lang="en"] body{letter-spacing:.01em;}
   .about-grid,.course-grid,.teach-grid,.fee-grid,.contact-grid{grid-template-columns:1fr;}
   .works-grid{grid-template-columns:repeat(2,1fr);}
   .work:nth-child(2),.work:nth-child(5){transform:none;}
-  .about-stamp{left:auto;right:-14px;}
   .car-prev{left:6px;}
   .car-next{right:6px;}
 }
