@@ -1,4 +1,4 @@
-# Wawatootoo art studio — 网站
+# WATO — 网站
 
 东京·龟户的儿童绘画与初高中生素描教室官网。纯静态站点，无需构建工具，可直接部署到 GitHub Pages。
 
