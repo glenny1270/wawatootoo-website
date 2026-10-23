@@ -1,5 +1,5 @@
 /* ============================================================
-   Wawatootoo art studio — shared script
+   WATO — shared script
    ヘッダー/フッターの生成・言語切替・作品/動画の自動読み込み・
    ホームのメディアカルーセルをここで一括管理します。
    ============================================================ */
@@ -14,7 +14,9 @@ const PAGES = [
   ["contact.html",  "nav_contact"]
 ];
 
-const HTML_KEYS = new Set(["about_stamp","addr","t2_bio","t3_bio","t4_bio"]);
+const HTML_KEYS = new Set(["about_stamp","addr","t2_bio","t3_bio","t4_bio","t5_bio"]);
+/* 言語別サブディレクトリ（/zh/ /en/）から資産を参照するためのベースパス */
+const BASE = (document.body && document.body.dataset.base) || "";
 let currentLang = "ja";
 let discoveredWorks = [];   /* [{n, url}]  images in assets/works */
 let discoveredVideos = [];  /* [{n, url}]  videos in assets/media */
@@ -23,7 +25,8 @@ let mediaItems = [];        /* carousel slides: videos first, then images */
 /* ---------- language persistence (fails silently if unavailable) ---------- */
 function savedLang(){
   try{ const l = localStorage.getItem("wawatootoo-lang"); if(l && I18N[l]) return l; }catch(e){}
-  return "ja";
+  const pageLang = document.documentElement.getAttribute("data-lang");
+  return (pageLang && I18N[pageLang]) ? pageLang : "ja";
 }
 function saveLang(l){ try{ localStorage.setItem("wawatootoo-lang", l); }catch(e){} }
 
@@ -42,10 +45,7 @@ function buildHeader(){
   host.innerHTML = `
   <header class="site-header" id="header">
     <a class="brand" href="index.html">
-      <svg class="brand-mark" viewBox="0 0 48 48" fill="none">
-        <circle cx="24" cy="24" r="20" stroke="#16141F" stroke-width="2.6" stroke-dasharray="100 26" stroke-linecap="round" transform="rotate(-60 24 24)"/>
-        <circle cx="30" cy="17" r="4.6" fill="#8B5CF6"/>
-      </svg>
+      <img class="brand-mark-img" src="${BASE}assets/img/wato-mark.png" alt="WATO">
       <span>
         <span class="brand-name i18n-fade" data-i18n="brand"></span>
         <span class="brand-sub">art studio</span>
@@ -75,12 +75,16 @@ function buildFooter(){
   host.innerHTML = `
   <footer class="site-footer">
     <div class="footer-inner">
-      <p class="footer-brand"><span class="i18n-fade" data-i18n="brand"></span><small>Art Studio · Kameido, Tokyo</small></p>
+      <div class="footer-left">
+        <img class="footer-logo" src="${BASE}assets/img/wato-logo.png" alt="WATO — wawatootoo art studio">
+        <small>Art Studio · Kameido, Tokyo</small>
+      </div>
       <p class="footer-tag i18n-fade" data-i18n="foot_note"></p>
     </div>
     <div class="copyright">
-      <span>© 2026 Wawatootoo art studio. All rights reserved.</span>
+      <span>© 2026 WATO. All rights reserved.</span>
       <span>Kameido, Koto City, Tokyo</span>
+      <span class="ga-note i18n-fade" data-i18n="ga_note"></span>
     </div>
   </footer>`;
 }
@@ -102,7 +106,7 @@ function applyLang(lang){
   const page = PAGES.find(p=>p[0]===cur);
   document.title = (cur === "index.html" || !page)
     ? dict.meta_title
-    : dict[page[1]] + " | Wawatootoo art studio";
+    : dict[page[1]] + " | WATO";
   const mq = document.getElementById("marqueeTrack");
   if(mq) buildMarquee(dict.marquee);
   document.querySelectorAll(".lang-switch button").forEach(b=>{
@@ -157,7 +161,7 @@ async function discoverWorks(max=60){
   for(let n=1;n<=max;n++){
     let url = null;
     for(const ext of WORK_EXTS){
-      const candidate = `assets/works/${pad2(n)}.${ext}`;
+      const candidate = `${BASE}assets/works/${pad2(n)}.${ext}`;
       if(await probeImage(candidate)){ url = candidate; break; }
     }
     if(!url) break;
@@ -169,9 +173,9 @@ async function discoverWorks(max=60){
 async function discoverVideos(max=10){
   const found = [];
   for(let n=0;n<max;n++){
-    const mp4 = `assets/media/video_${n}.mp4`;
+    const mp4 = `${BASE}assets/media/video_${n}.mp4`;
     if(await probeUrl(mp4)){
-      const webm = `assets/media/video_${n}.webm`;
+      const webm = `${BASE}assets/media/video_${n}.webm`;
       found.push({n, url:mp4, webm:(await probeUrl(webm)) ? webm : null});
     } else break;
   }
@@ -307,14 +311,73 @@ function initCarousel(){
 function initWorksGrid(){
   const grid = document.getElementById("worksGrid");
   if(!grid) return;
-  grid.innerHTML = discoveredWorks.map(w=>`
-    <figure class="work reveal" data-work-n="${w.n}">
+  grid.innerHTML = discoveredWorks.map((w,i)=>`
+    <figure class="work reveal" data-work-n="${w.n}" data-idx="${i}">
       <div class="art"><img src="${w.url}" alt="student work ${pad2(w.n)}" loading="lazy"></div>
       <figcaption><span class="w-title"></span><span class="age w-age"></span></figcaption>
     </figure>`).join("");
   refreshMediaCaptions();
   bindTilt();
   observeReveals(grid);
+  buildLightbox();
+  grid.querySelectorAll(".work").forEach(w=>{
+    w.addEventListener("click", ()=>openLightbox(Number(w.dataset.idx)));
+  });
+}
+
+/* ---------- lightbox（作品クリックで拡大表示） ---------- */
+let lbIndex = 0;
+function buildLightbox(){
+  if(document.getElementById("lightbox")) return;
+  const lb = document.createElement("div");
+  lb.id = "lightbox";
+  lb.setAttribute("hidden","");
+  lb.innerHTML = `
+    <button class="lb-btn lb-close" aria-label="close">✕</button>
+    <button class="lb-btn lb-prev" aria-label="previous">←</button>
+    <figure class="lb-stage">
+      <img alt="">
+      <figcaption data-work-n=""><span class="w-title"></span><span class="age w-age"></span></figcaption>
+    </figure>
+    <button class="lb-btn lb-next" aria-label="next">→</button>`;
+  document.body.appendChild(lb);
+  lb.querySelector(".lb-close").addEventListener("click", closeLightbox);
+  lb.querySelector(".lb-prev").addEventListener("click", e=>{ e.stopPropagation(); showLightbox(lbIndex-1); });
+  lb.querySelector(".lb-next").addEventListener("click", e=>{ e.stopPropagation(); showLightbox(lbIndex+1); });
+  lb.addEventListener("click", e=>{ if(e.target === lb || e.target.classList.contains("lb-stage")) closeLightbox(); });
+  addEventListener("keydown", e=>{
+    if(lb.hasAttribute("hidden")) return;
+    if(e.key === "Escape") closeLightbox();
+    if(e.key === "ArrowLeft"){ e.stopPropagation(); showLightbox(lbIndex-1); }
+    if(e.key === "ArrowRight"){ e.stopPropagation(); showLightbox(lbIndex+1); }
+  }, true);
+}
+function showLightbox(i){
+  const lb = document.getElementById("lightbox");
+  if(!lb || !discoveredWorks.length) return;
+  lbIndex = (i + discoveredWorks.length) % discoveredWorks.length;
+  const w = discoveredWorks[lbIndex];
+  lb.querySelector("img").src = w.url;
+  const cap = lb.querySelector("figcaption");
+  cap.dataset.workN = w.n;
+  const [t,a] = imageCaption(w.n);
+  cap.querySelector(".w-title").textContent = t;
+  cap.querySelector(".w-age").textContent = a;
+}
+function openLightbox(i){
+  const lb = document.getElementById("lightbox");
+  if(!lb) return;
+  showLightbox(i);
+  lb.removeAttribute("hidden");
+  requestAnimationFrame(()=>lb.classList.add("on"));
+  document.body.style.overflow = "hidden";
+}
+function closeLightbox(){
+  const lb = document.getElementById("lightbox");
+  if(!lb) return;
+  lb.classList.remove("on");
+  lb.setAttribute("hidden","");
+  document.body.style.overflow = "";
 }
 
 /* ---------- works page: activity movies grid ----------
@@ -324,7 +387,7 @@ function initActivityGrid(){
   if(!grid || typeof ACTIVITY_VIDEOS === "undefined") return;
   grid.innerHTML = ACTIVITY_VIDEOS.map((v,i)=>`
     <figure class="vid reveal" data-act-i="${i}">
-      <video src="${v.file}" controls preload="metadata" playsinline controlslist="nodownload"></video>
+      <video src="${BASE}${v.file}" controls preload="metadata" playsinline controlslist="nodownload"></video>
       <figcaption><span class="v-title"></span><span class="v-meta"></span></figcaption>
     </figure>`).join("");
   refreshMediaCaptions();
@@ -408,7 +471,7 @@ if(form){
           "メール / Email": document.getElementById("f-email").value,
           "ご希望のコース / Course": document.getElementById("f-course").value,
           "メッセージ / Message": document.getElementById("f-msg").value,
-          "_subject": "【Wawatootoo】サイトからのお問い合わせ",
+          "_subject": "【WATO】サイトからのお問い合わせ",
           "_template": "table",
           "_captcha": "false",
           "_honey": honey ? honey.value : ""
