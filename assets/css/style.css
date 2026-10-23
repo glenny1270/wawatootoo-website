@@ -264,7 +264,36 @@ html[data-lang="en"] .pull-quote{font-family:var(--latin);font-style:italic;font
   transform:rotate(1.6deg);transition:transform .5s ease;
 }
 .about-art:hover .frame{transform:rotate(0deg);}
-.about-art .frame img{display:block;width:100%;height:auto;}
+.concept-mark{
+  position:relative;text-align:center;
+  padding:clamp(56px,8vw,96px) 12px;
+}
+.cm-glow{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:min(420px,92%);height:78%;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(124,155,242,.34),rgba(139,92,246,.18) 58%,transparent 78%);
+  filter:blur(34px);pointer-events:none;
+}
+.concept-mark p,.cm-rule{position:relative;}
+.cm-name{
+  font-family:var(--latin);font-weight:600;
+  font-size:clamp(52px,6vw,76px);line-height:1.1;
+  letter-spacing:.24em;text-indent:.24em;color:var(--ink);
+}
+.cm-rule{
+  display:block;width:46px;height:1px;margin:22px auto 24px;
+  background:linear-gradient(90deg,var(--blue),var(--accent));
+}
+.cm-tag{
+  font-family:var(--latin);font-style:italic;font-weight:500;
+  font-size:clamp(19px,2vw,23px);letter-spacing:.14em;
+  color:var(--ink-soft);margin-bottom:14px;
+}
+.cm-sub{
+  font-family:var(--sans);font-weight:400;
+  font-size:11.5px;letter-spacing:.34em;text-transform:uppercase;
+  color:var(--muted);text-indent:.34em;
+}
 
 /* ---------- courses ---------- */
 .course-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(24px,3vw,44px);}
