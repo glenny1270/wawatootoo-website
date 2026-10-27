@@ -163,28 +163,39 @@ const WORK_GROUPS = ["child","sketch"];
 /* 首页カルーセルに出さない作品（"グループ/番号"） */
 const CAROUSEL_EXCLUDE = new Set(["sketch/1"]);
 
+async function probeWork(folder, n){
+  const names = n < 10 ? [pad2(n), String(n)] : [String(n)];
+  for(const name of names){
+    for(const ext of WORK_EXTS){
+      const candidate = folder
+        ? `${BASE}assets/works/${folder}/${name}.${ext}`
+        : `${BASE}assets/works/${name}.${ext}`;
+      if(await probeImage(candidate)) return candidate;
+    }
+  }
+  return null;
+}
+
+/* 番号をまとめて並列チェック（初回表示を速くする） */
 async function discoverFolder(folder, max=60){
   const found = [];
-  for(let n=1;n<=max;n++){
-    let url = null;
-    const names = n < 10 ? [pad2(n), String(n)] : [String(n)];
-    outer: for(const name of names){
-      for(const ext of WORK_EXTS){
-        const candidate = folder
-          ? `${BASE}assets/works/${folder}/${name}.${ext}`
-          : `${BASE}assets/works/${name}.${ext}`;
-        if(await probeImage(candidate)){ url = candidate; break outer; }
-      }
+  const BATCH = 12;
+  for(let start=1; start<=max; start+=BATCH){
+    const ns = [];
+    for(let n=start; n<Math.min(start+BATCH, max+1); n++) ns.push(n);
+    const urls = await Promise.all(ns.map(n=>probeWork(folder, n)));
+    for(let i=0;i<ns.length;i++){
+      if(!urls[i]) return found;
+      found.push({group: folder || "sketch", n: ns[i], url: urls[i]});
     }
-    if(!url) break;
-    found.push({group: folder || "sketch", n, url});
   }
   return found;
 }
 
 async function discoverWorks(max=60){
+  const lists = await Promise.all(WORK_GROUPS.map(g=>discoverFolder(g, max)));
   const groups = {};
-  for(const g of WORK_GROUPS) groups[g] = await discoverFolder(g, max);
+  WORK_GROUPS.forEach((g,i)=>groups[g] = lists[i]);
   /* 旧構成（assets/works/01.jpg…）へのフォールバック */
   if(!groups.child.length && !groups.sketch.length){
     groups.sketch = await discoverFolder("", max);
@@ -193,14 +204,14 @@ async function discoverWorks(max=60){
 }
 
 async function discoverVideos(max=10){
-  const found = [];
-  for(let n=0;n<max;n++){
+  const probes = await Promise.all([...Array(max).keys()].map(async n=>{
     const mp4 = `${BASE}assets/media/video_${n}.mp4`;
-    if(await probeUrl(mp4)){
-      const webm = `${BASE}assets/media/video_${n}.webm`;
-      found.push({n, url:mp4, webm:(await probeUrl(webm)) ? webm : null});
-    } else break;
-  }
+    if(!(await probeUrl(mp4))) return null;
+    const webm = `${BASE}assets/media/video_${n}.webm`;
+    return {n, url:mp4, webm:(await probeUrl(webm)) ? webm : null};
+  }));
+  const found = [];
+  for(const p of probes){ if(!p) break; found.push(p); }
   return found;
 }
 
@@ -282,7 +293,10 @@ function initCarousel(){
     if(m.type === "video"){
       const sources = `<source src="${m.url}" type="video/mp4">` +
         (m.webm ? `<source src="${m.webm}" type="video/webm">` : "");
-      return `<div class="slide" data-i="${i}"><video muted playsinline preload="metadata" controls controlslist="nodownload">${sources}</video></div>`;
+      /* ポスター画像で読み込み中の黒画面を防ぐ。先頭スライドは先行読み込み */
+      const poster = m.url.replace(/\.mp4$/i, "_poster.jpg");
+      const preload = i === 0 ? "auto" : "metadata";
+      return `<div class="slide" data-i="${i}"><video muted playsinline preload="${preload}" poster="${poster}" controls controlslist="nodownload">${sources}</video></div>`;
     }
     return `<div class="slide" data-i="${i}"><img src="${m.url}" alt="student work ${pad2(m.n)}" loading="lazy"></div>`;
   }).join("");
