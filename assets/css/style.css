@@ -514,6 +514,9 @@ footer.site-footer{
 .footer-brand small{display:block;font-family:var(--latin);font-size:11px;letter-spacing:.4em;color:#8d87a8;margin-top:8px;text-transform:uppercase;}
 .footer-tag{font-family:var(--latin);font-style:italic;font-size:14px;color:#8d87a8;}
 .footer-left small{display:block;font-family:var(--latin);font-size:11px;letter-spacing:.34em;color:#8d87a8;text-transform:uppercase;}
+.footer-ig{display:inline-flex;align-items:center;gap:9px;margin-top:16px;color:#a49ec0;font-family:var(--latin);font-size:12.5px;letter-spacing:.12em;transition:color .3s ease;}
+.footer-ig:hover{color:#fff;}
+.footer-ig svg{width:16px;height:16px;flex:none;}
 .copyright{max-width:1200px;margin:40px auto 0;padding-top:24px;border-top:1px solid #2c2840;font-size:11px;letter-spacing:.14em;color:#6d678a;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;}
 
 .copyright .ga-note{width:100%;margin-top:8px;font-size:10.5px;color:#5d5878;letter-spacing:.1em;}
