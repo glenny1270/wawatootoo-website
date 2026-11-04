@@ -397,6 +397,24 @@ a.trial-banner:hover{transform:translateY(-3px);box-shadow:0 20px 40px -18px rgb
 .work:nth-child(2){transform:translateY(28px);}
 .work:nth-child(5){transform:translateY(28px);}
 .works-note{margin-top:70px;text-align:center;font-size:12.5px;color:#8d87a8;letter-spacing:.14em;}
+
+/* ---------- contact form success card ---------- */
+.form-success{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  padding:clamp(44px,6vw,84px) clamp(20px,4vw,44px);
+  border:1px solid var(--line);background:#fff;
+  box-shadow:0 30px 60px -30px rgba(22,20,31,.18);
+  animation:fsIn .6s cubic-bezier(.22,1,.36,1);
+}
+@keyframes fsIn{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:none;}}
+.fs-check{width:74px;height:74px;margin-bottom:24px;display:block;}
+.fs-check svg{width:100%;height:100%;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+.fs-check circle{stroke:var(--accent);stroke-width:1.6;opacity:.35;}
+.fs-check path{stroke:var(--accent);stroke-width:3;stroke-dasharray:42;stroke-dashoffset:42;animation:fsDraw .7s .3s ease forwards;}
+@keyframes fsDraw{to{stroke-dashoffset:0;}}
+.form-success h3{font-family:var(--serif);font-weight:600;font-size:22px;letter-spacing:.14em;margin-bottom:16px;color:var(--ink);}
+.form-success p{color:var(--ink-soft);font-weight:300;font-size:14.5px;line-height:2.2;max-width:32em;}
+.form-success .fs-note{margin-top:12px;font-size:12.5px;color:var(--muted);}
 .works-group:first-child .movies-head{margin-top:0;}
 
 /* ---------- lightbox ---------- */
