@@ -526,6 +526,16 @@ addEventListener("scroll", ()=>{
 const FORM_ENDPOINT = "https://formsubmit.co/ajax/wmyymw1994@gmail.com";
 const form = document.getElementById("contactForm");
 if(form){
+  /* 通常送信フォールバックから戻ってきた場合（?sent=1）は完了メッセージを表示 */
+  if(location.search.indexOf("sent=1") !== -1){
+    const sent0 = document.getElementById("formSent");
+    if(sent0){
+      sent0.setAttribute("data-i18n","f_sent");
+      sent0.textContent = I18N[currentLang].f_sent;
+      sent0.classList.add("show");
+    }
+    form.scrollIntoView({block:"center"});
+  }
   form.addEventListener("submit", async e=>{
     e.preventDefault();
     const btn = form.querySelector("button[type=submit]");
@@ -555,6 +565,12 @@ if(form){
       sent.classList.add("show");
       form.reset();
     }catch(err){
+      /* AJAX が使えない環境では通常のフォーム送信にフォールバック
+         （FormSubmit へ POST し、完了後 _next で当ページに戻る） */
+      try{
+        HTMLFormElement.prototype.submit.call(form);
+        return;
+      }catch(e2){}
       sent.setAttribute("data-i18n","f_err");
       sent.textContent = dict.f_err;
       sent.classList.add("show","err");
