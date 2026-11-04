@@ -555,19 +555,21 @@ if(form){
     btn.disabled = true; btn.style.opacity = ".55";
     sent.classList.remove("show","err");
     try{
+      const payload = {
+        "access_key": FORM_ACCESS_KEY,
+        "subject": "【Wawatootoo art studio】サイトからのお問い合わせ",
+        "from_name": "Wawatootoo art studio",
+        "お名前 / Name": document.getElementById("f-name").value,
+        "email": document.getElementById("f-email").value,
+        "ご希望のコース / Course": document.getElementById("f-course").value,
+        "メッセージ / Message": document.getElementById("f-msg").value
+      };
+      /* ハニーポット: bot がチェックした場合のみ送る（Web3Forms が自動で破棄） */
+      if(honey && honey.checked) payload.botcheck = true;
       const res = await fetch(FORM_ENDPOINT, {
         method: "POST",
         headers: {"Content-Type":"application/json", "Accept":"application/json"},
-        body: JSON.stringify({
-          "access_key": FORM_ACCESS_KEY,
-          "subject": "【Wawatootoo art studio】サイトからのお問い合わせ",
-          "from_name": "Wawatootoo art studio",
-          "お名前 / Name": document.getElementById("f-name").value,
-          "email": document.getElementById("f-email").value,
-          "ご希望のコース / Course": document.getElementById("f-course").value,
-          "メッセージ / Message": document.getElementById("f-msg").value,
-          "botcheck": honey ? honey.value : ""
-        })
+        body: JSON.stringify(payload)
       });
       if(!res.ok) throw new Error("send failed: " + res.status);
       form.reset();
