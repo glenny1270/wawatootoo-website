@@ -75,19 +75,23 @@
             <iframe src="https://www.google.com/maps?q=%E6%9D%B1%E4%BA%AC%E9%83%BD%E6%B1%9F%E6%9D%B1%E5%8C%BA%E4%BA%80%E6%88%B86-57-7&amp;z=16&amp;hl=en&amp;output=embed" width="100%" height="340" style="border:0" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Wawatootoo art studio - Google Map"></iframe>
           </div>
         </div>
-        <form class="contact-form reveal visible" id="contactForm" style="">
+        <form class="contact-form reveal visible" id="contactForm" style="" action="https://formsubmit.co/wmyymw1994@gmail.com" method="POST">
           <input type="text" id="f-honey" name="_honey" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;opacity:0" aria-hidden="true">
+          <input type="hidden" name="_subject" value="【Wawatootoo art studio】サイトからのお問い合わせ">
+          <input type="hidden" name="_template" value="table">
+          <input type="hidden" name="_captcha" value="false">
+          <input type="hidden" name="_next" value="https://wawatootoo.com/en/contact.html?sent=1">
           <div class="form-row">
             <label for="f-name" class="i18n-fade" data-i18n="f_name">Name</label>
-            <input id="f-name" type="text" required="">
+            <input id="f-name" name="お名前 / Name" type="text" required="">
           </div>
           <div class="form-row">
             <label for="f-email" class="i18n-fade" data-i18n="f_email">Email</label>
-            <input id="f-email" type="email" required="">
+            <input id="f-email" name="メール / Email" type="email" required="">
           </div>
           <div class="form-row">
             <label for="f-course" class="i18n-fade" data-i18n="f_course">Preferred course</label>
-            <select id="f-course">
+            <select id="f-course" name="ご希望のコース / Course">
               <option class="i18n-fade" data-i18n="f_c1">Kids' Art (Ages 3–6)</option>
               <option class="i18n-fade" data-i18n="f_c2">Kids' Art (Elementary)</option>
               <option class="i18n-fade" data-i18n="f_c3">Drawing Course</option>
@@ -96,7 +100,7 @@
           </div>
           <div class="form-row">
             <label for="f-msg" class="i18n-fade" data-i18n="f_msg">Message</label>
-            <textarea id="f-msg"></textarea>
+            <textarea id="f-msg" name="メッセージ / Message"></textarea>
           </div>
           <button type="submit" class="btn btn-solid"><span class="i18n-fade" data-i18n="f_send">Send</span><span class="arrow">→</span></button>
           <p class="form-sent" id="formSent" data-i18n="f_sent">Sent! We'll reply within two business days.</p>
