@@ -523,18 +523,28 @@ addEventListener("scroll", ()=>{
 }, {passive:true});
 
 /* ---------- お問い合わせフォーム（FormSubmit 経由でメール送信） ---------- */
-const FORM_ENDPOINT = "https://formsubmit.co/ajax/wmyymw1994@gmail.com";
+const FORM_ENDPOINT = "https://api.web3forms.com/submit";
+const FORM_ACCESS_KEY = "b3ac149b-d587-4d76-b333-72c0cc09f7cd";
+function showFormSuccess(){
+  const formEl = document.getElementById("contactForm");
+  if(!formEl || document.querySelector(".form-success")) return;
+  const d = I18N[currentLang];
+  const card = document.createElement("div");
+  card.className = "form-success";
+  card.innerHTML = `
+    <span class="fs-check" aria-hidden="true"><svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="24"/><path d="M15 27 l8 7 l14 -15"/></svg></span>
+    <h3 class="i18n-fade" data-i18n="f_done_title">${d.f_done_title}</h3>
+    <p class="i18n-fade" data-i18n="f_done_body">${d.f_done_body}</p>
+    <p class="fs-note i18n-fade" data-i18n="f_done_note">${d.f_done_note}</p>`;
+  formEl.replaceWith(card);
+  card.scrollIntoView({block:"center", behavior:"smooth"});
+}
+
 const form = document.getElementById("contactForm");
 if(form){
   /* 通常送信フォールバックから戻ってきた場合（?sent=1）は完了メッセージを表示 */
   if(location.search.indexOf("sent=1") !== -1){
-    const sent0 = document.getElementById("formSent");
-    if(sent0){
-      sent0.setAttribute("data-i18n","f_sent");
-      sent0.textContent = I18N[currentLang].f_sent;
-      sent0.classList.add("show");
-    }
-    form.scrollIntoView({block:"center"});
+    showFormSuccess();
   }
   form.addEventListener("submit", async e=>{
     e.preventDefault();
@@ -549,21 +559,19 @@ if(form){
         method: "POST",
         headers: {"Content-Type":"application/json", "Accept":"application/json"},
         body: JSON.stringify({
+          "access_key": FORM_ACCESS_KEY,
+          "subject": "【Wawatootoo art studio】サイトからのお問い合わせ",
+          "from_name": "Wawatootoo art studio",
           "お名前 / Name": document.getElementById("f-name").value,
-          "メール / Email": document.getElementById("f-email").value,
+          "email": document.getElementById("f-email").value,
           "ご希望のコース / Course": document.getElementById("f-course").value,
           "メッセージ / Message": document.getElementById("f-msg").value,
-          "_subject": "【Wawatootoo art studio】サイトからのお問い合わせ",
-          "_template": "table",
-          "_captcha": "false",
-          "_honey": honey ? honey.value : ""
+          "botcheck": honey ? honey.value : ""
         })
       });
       if(!res.ok) throw new Error("send failed: " + res.status);
-      sent.setAttribute("data-i18n","f_sent");
-      sent.textContent = dict.f_sent;
-      sent.classList.add("show");
       form.reset();
+      showFormSuccess();
     }catch(err){
       /* AJAX が使えない環境では通常のフォーム送信にフォールバック
          （FormSubmit へ POST し、完了後 _next で当ページに戻る） */
