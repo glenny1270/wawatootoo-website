@@ -90,7 +90,8 @@ ja:{
   ga_note:"本サイトはアクセス解析に Google Analytics を使用しています。",
   works_generic:"作品", works_generic_meta:"生徒作品",
   works_kids_title:"こども美術の作品", works_sketch_title:"デッサン作品",
-  works_generic_kids:"こども美術", works_generic_sketch:"デッサン"
+  works_generic_kids:"こども美術", works_generic_sketch:"デッサン",
+  works_generic_intro:"アトリエ風景", works_generic_meta_intro:"アトリエ"
 },
 zh:{
   meta_title:"Wawatootoo art studio | 龟户的儿童美术·素描画室（东京江东区）",
@@ -178,7 +179,8 @@ zh:{
   ga_note:"本网站使用 Google Analytics 进行访问统计。",
   works_generic:"作品", works_generic_meta:"学生作品",
   works_kids_title:"儿童美术作品", works_sketch_title:"素描作品",
-  works_generic_kids:"儿童美术", works_generic_sketch:"素描"
+  works_generic_kids:"儿童美术", works_generic_sketch:"素描",
+  works_generic_intro:"画室风景", works_generic_meta_intro:"画室"
 },
 en:{
   meta_title:"Wawatootoo art studio | Kids' Art & Drawing School in Kameido, Tokyo",
@@ -266,7 +268,8 @@ en:{
   ga_note:"This site uses Google Analytics for traffic measurement.",
   works_generic:"Work", works_generic_meta:"Student Work",
   works_kids_title:"Children's Art", works_sketch_title:"Drawings",
-  works_generic_kids:"Kids' Art", works_generic_sketch:"Drawing"
+  works_generic_kids:"Kids' Art", works_generic_sketch:"Drawing",
+  works_generic_intro:"Studio Scene", works_generic_meta_intro:"Atelier"
 }
 };
 
@@ -290,6 +293,8 @@ const VIDEO_CAPTIONS = {
    表示順はこの配列の順番どおりです。
    ============================================================ */
 const ACTIVITY_VIDEOS = [
+  {file:"assets/media/video_0.mp4", poster:"assets/media/video_0_poster.jpg", ja:["アトリエ紹介ムービー","アトリエ"], zh:["画室介绍视频","画室"], en:["Studio Introduction","Atelier"]},
+  {file:"assets/media/video_1.mp4", poster:"assets/media/video_1_poster.jpg", ja:["デッサンクラスの風景","アトリエ"], zh:["素描课堂风景","画室"], en:["Inside the Drawing Class","Atelier"]},
   {file:"assets/media/act_01.mp4", ja:["クリスマス会 2025","イベント"], zh:["2025 圣诞活动","画室活动"], en:["Christmas Party 2025","Event"]},
   {file:"assets/media/act_02.mp4", ja:["亀戸中央公園スケッチ会 2025","野外写生"], zh:["龟户中央公园写生 2025","户外写生"], en:["Sketching at Kameido Chuo Park 2025","Outdoor Sketching"]},
   {file:"assets/media/act_03.mp4", ja:["色鉛筆ワークショップ 2026","ワークショップ"], zh:["彩铅工作坊 2026","工作坊"], en:["Colored Pencil Workshop 2026","Workshop"]},

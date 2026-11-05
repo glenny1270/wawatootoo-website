@@ -20,7 +20,6 @@ const BASE = (document.body && document.body.dataset.base) || "";
 let currentLang = "ja";
 let worksGroups = {child:[], sketch:[]};  /* assets/works/<group>/ の画像 */
 let discoveredWorks = [];   /* [{group, n, url}] 全グループ結合（lightbox 用） */
-let discoveredVideos = [];  /* [{n, url}]  videos in assets/media */
 let mediaItems = [];        /* carousel slides: videos first, then images */
 
 /* ---------- language persistence (fails silently if unavailable) ---------- */
@@ -149,16 +148,6 @@ function probeImage(url){
     im.src = url;
   });
 }
-/* 動画の存在確認は <video> 要素で行う（file:// 直開きでも動作する） */
-function probeUrl(url){
-  return new Promise(res=>{
-    const v = document.createElement("video");
-    v.preload = "metadata";
-    v.onloadedmetadata = ()=>res(true);
-    v.onerror = ()=>res(false);
-    v.src = url;
-  });
-}
 
 /* 作品はグループごとのサブフォルダに置く:
    assets/works/child/1.jpg…（こども美術） / assets/works/sketch/01.jpg…（デッサン）
@@ -207,21 +196,12 @@ async function discoverWorks(max=60){
   return groups;
 }
 
-async function discoverVideos(max=10){
-  const probes = await Promise.all([...Array(max).keys()].map(async n=>{
-    const mp4 = `${BASE}assets/media/video_${n}.mp4`;
-    if(!(await probeUrl(mp4))) return null;
-    const webm = `${BASE}assets/media/video_${n}.webm`;
-    return {n, url:mp4, webm:(await probeUrl(webm)) ? webm : null};
-  }));
-  const found = [];
-  for(const p of probes){ if(!p) break; found.push(p); }
-  return found;
-}
 
 /* ---------- captions ---------- */
 function imageCaption(w){
   /* w: {group, n} — WORKS_CAPTIONS のキーは "child/1" / "sketch/2" 形式 */
+  const dd = I18N[currentLang];
+  if(w.group === "intro") return [`${dd.works_generic_intro} ${pad2(w.n)}`, dd.works_generic_meta_intro];
   const key = `${w.group}/${w.n}`;
   const c = WORKS_CAPTIONS[key] || WORKS_CAPTIONS[w.n];
   if(c && c[currentLang]) return c[currentLang];
@@ -271,89 +251,79 @@ function refreshMediaCaptions(){
   }
 }
 
-/* ---------- home media carousel ----------
-   スライド構成: 動画（video_0 が先頭・自動再生）→ 作品画像。
-   動画スライドは再生終了で次へ、画像スライドは6秒で次へ。 */
-function initCarousel(){
-  const slidesHost = document.getElementById("carouselSlides");
-  if(!slidesHost) return;
-  const dotsHost = document.getElementById("carouselDots");
-  const counter = document.getElementById("carouselCounter");
-  const capHost = document.getElementById("carouselCaption");
-  let idx = 0, timer = null;
+/* ---------- home media carousel（画像のみ・軽量版） ----------
+   動画本体は作品ページへ移動し、ここでは2枚のポスター画像＋作品画像を表示。
+   ポスター2枚は検出を待たず即表示されるので、開いてすぐ操作できる。 */
+function CAROUSEL_STATIC(){
+  return [
+    {type:"img", group:"intro", n:1, url:`${BASE}assets/media/video_0_poster.jpg`},
+    {type:"img", group:"intro", n:2, url:`${BASE}assets/media/video_1_poster.jpg`}
+  ];
+}
+let carIdx = 0, carTimer = null, carBound = false;
 
+function carStop(){ if(carTimer){ clearInterval(carTimer); carTimer = null; } }
+function carStart(){ carStop(); carTimer = setInterval(()=>carShow(carIdx+1), 6000); }
+
+function carShow(i){
+  const slidesHost = document.getElementById("carouselSlides");
+  if(!slidesHost || !mediaItems.length) return;
+  carIdx = (i + mediaItems.length) % mediaItems.length;
+  slidesHost.querySelectorAll(".slide").forEach(st=>st.classList.toggle("on", Number(st.dataset.i)===carIdx));
+  const dotsHost = document.getElementById("carouselDots");
+  dotsHost.querySelectorAll("button").forEach(d=>d.classList.toggle("on", Number(d.dataset.i)===carIdx));
+  document.getElementById("carouselCounter").textContent = `${pad2(carIdx+1)} / ${pad2(mediaItems.length)}`;
+  const capHost = document.getElementById("carouselCaption");
+  const [t,a] = mediaCaption(mediaItems[carIdx]);
+  capHost.querySelector(".t").textContent = t;
+  capHost.querySelector(".a").textContent = a;
+  capHost.dataset.mediaI = carIdx;
+  carStart();
+}
+
+function bindCarouselControls(){
+  if(carBound) return;
+  carBound = true;
+  document.getElementById("carPrev").addEventListener("click", ()=>carShow(carIdx-1));
+  document.getElementById("carNext").addEventListener("click", ()=>carShow(carIdx+1));
+  addEventListener("keydown", e=>{
+    if(e.key === "ArrowRight") carShow(carIdx+1);
+    if(e.key === "ArrowLeft") carShow(carIdx-1);
+  });
+  const frame = document.querySelector(".carousel-frame");
+  frame.addEventListener("mouseenter", carStop);
+  frame.addEventListener("mouseleave", carStart);
+}
+
+function renderCarousel(){
+  const slidesHost = document.getElementById("carouselSlides");
+  if(!slidesHost || !mediaItems.length) return;
+  const dotsHost = document.getElementById("carouselDots");
+  slidesHost.innerHTML = mediaItems.map((m,i)=>
+    `<div class="slide" data-i="${i}"><img src="${m.url}" alt="WATO ${m.group} ${pad2(m.n)}" ${i===0 ? 'fetchpriority="high"' : 'loading="lazy"'}></div>`).join("");
+  dotsHost.innerHTML = mediaItems.map((m,i)=>
+    `<button type="button" data-i="${i}" aria-label="slide ${i+1}"></button>`).join("");
+  dotsHost.querySelectorAll("button").forEach(d=>
+    d.addEventListener("click", ()=>carShow(Number(d.dataset.i))));
+  bindCarouselControls();
+  carShow(Math.min(carIdx, mediaItems.length-1));
+}
+
+function initCarousel(){
+  if(!document.getElementById("carouselSlides")) return;
+  mediaItems = CAROUSEL_STATIC();
+  renderCarousel();
+}
+
+function appendWorksToCarousel(){
+  if(!document.getElementById("carouselSlides")) return;
   mediaItems = [
-    ...discoveredVideos.map(v=>({type:"video", n:v.n, url:v.url, webm:v.webm})),
+    ...CAROUSEL_STATIC(),
     ...discoveredWorks
       .filter(w=>!CAROUSEL_EXCLUDE.has(`${w.group}/${w.n}`))
       .map(w=>({type:"img", group:w.group, n:w.n, url:w.url}))
   ];
-  if(!mediaItems.length){
-    slidesHost.innerHTML = "<p style='padding:40px;text-align:center'>No media found.</p>";
-    return;
-  }
-
-  slidesHost.innerHTML = mediaItems.map((m,i)=>{
-    if(m.type === "video"){
-      const sources = `<source src="${m.url}" type="video/mp4">` +
-        (m.webm ? `<source src="${m.webm}" type="video/webm">` : "");
-      /* ポスター画像で読み込み中の黒画面を防ぐ。先頭スライドは先行読み込み */
-      const poster = m.url.replace(/\.mp4$/i, "_poster.jpg");
-      const preload = i === 0 ? "auto" : "metadata";
-      return `<div class="slide" data-i="${i}"><video muted playsinline preload="${preload}" poster="${poster}" controls controlslist="nodownload">${sources}</video></div>`;
-    }
-    return `<div class="slide" data-i="${i}"><img src="${m.url}" alt="student work ${pad2(m.n)}" loading="lazy"></div>`;
-  }).join("");
-  dotsHost.innerHTML = mediaItems.map((m,i)=>
-    `<button type="button" data-i="${i}" aria-label="slide ${i+1}"></button>`).join("");
-
-  function stopTimer(){ if(timer){ clearInterval(timer); timer = null; } }
-  function startTimer(){ stopTimer(); timer = setInterval(next, 6000); }
-
-  function show(i){
-    idx = (i + mediaItems.length) % mediaItems.length;
-    slidesHost.querySelectorAll(".slide").forEach(s=>{
-      const on = Number(s.dataset.i) === idx;
-      s.classList.toggle("on", on);
-      const v = s.querySelector("video");
-      if(v){
-        if(on){ v.currentTime = 0; v.play().catch(()=>{}); }
-        else v.pause();
-      }
-    });
-    dotsHost.querySelectorAll("button").forEach(d=>d.classList.toggle("on", Number(d.dataset.i)===idx));
-    counter.textContent = `${pad2(idx+1)} / ${pad2(mediaItems.length)}`;
-    const item = mediaItems[idx];
-    const [t,a] = mediaCaption(item);
-    capHost.querySelector(".t").textContent = t;
-    capHost.querySelector(".a").textContent = a;
-    capHost.dataset.mediaI = idx;
-    /* 動画中はタイマー停止（終了イベントで進む）、画像中は6秒タイマー */
-    if(item.type === "video") stopTimer();
-    else startTimer();
-  }
-  function next(){ show(idx+1); }
-  function prev(){ show(idx-1); }
-
-  slidesHost.querySelectorAll("video").forEach(v=>{
-    v.addEventListener("ended", ()=>next());
-  });
-
-  document.getElementById("carPrev").addEventListener("click", ()=>prev());
-  document.getElementById("carNext").addEventListener("click", ()=>next());
-  dotsHost.querySelectorAll("button").forEach(d=>
-    d.addEventListener("click", ()=>show(Number(d.dataset.i))));
-  addEventListener("keydown", e=>{
-    if(e.key === "ArrowRight") next();
-    if(e.key === "ArrowLeft") prev();
-  });
-  const frame = document.querySelector(".carousel-frame");
-  frame.addEventListener("mouseenter", stopTimer);
-  frame.addEventListener("mouseleave", ()=>{
-    if(mediaItems[idx] && mediaItems[idx].type !== "video") startTimer();
-  });
-
-  show(0); /* 先頭 = video_0（自動再生） */
+  renderCarousel();
 }
 
 /* ---------- works page grids (こども美術 / デッサン) ---------- */
@@ -459,7 +429,7 @@ function initActivityGrid(){
   if(!grid || typeof ACTIVITY_VIDEOS === "undefined") return;
   grid.innerHTML = ACTIVITY_VIDEOS.map((v,i)=>`
     <figure class="vid reveal" data-act-i="${i}">
-      <video src="${BASE}${v.file}" controls preload="metadata" playsinline controlslist="nodownload"></video>
+      <video src="${BASE}${v.file}" controls ${v.poster ? `poster="${BASE}${v.poster}" preload="none"` : 'preload="metadata"'} playsinline controlslist="nodownload"></video>
       <figcaption><span class="v-title"></span><span class="v-meta"></span></figcaption>
     </figure>`).join("");
   refreshMediaCaptions();
@@ -590,14 +560,20 @@ if(form){
   });
 }
 
-/* media discovery → carousel / grid */
-Promise.all([discoverWorks(), discoverVideos()]).then(([groups, videos])=>{
-  worksGroups = groups;
-  discoveredWorks = [...groups.child, ...groups.sketch];
-  discoveredVideos = videos;
-  initCarousel();
-  initWorksGrid();
-});
+/* carousel はポスター2枚で即時表示（検出を待たない） */
+initCarousel();
+
+/* 作品画像の検出は、カルーセル/作品グリッドのあるページだけで実行 */
+if(document.getElementById("carouselSlides") ||
+   document.getElementById("kidsGrid") || document.getElementById("sketchGrid") ||
+   document.getElementById("worksGrid")){
+  discoverWorks().then(groups=>{
+    worksGroups = groups;
+    discoveredWorks = [...groups.child, ...groups.sketch];
+    appendWorksToCarousel();
+    initWorksGrid();
+  });
+}
 
 /* 作品ページのアクティビティ動画（自動検出に依存しないので即時実行） */
 initActivityGrid();
